@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15) # Проверка версии CMake.
 									 # Если версия установленой программы
 									 # старее указаной, произайдёт аварийный выход.
 
-set(PROJECT_NAME array)				 # задать константу с именем проекта		 
+set(PROJECT_NAME factory)				 # задать константу с именем проекта		 
 project("${PROJECT_NAME}")			 # имя проекта	
 
 
@@ -12,4 +12,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 include_directories("inc/")			 # указываем, где искать файлы заголовков
 
-add_executable("${PROJECT_NAME}" laba3.cpp)	# добавить исполняемый файл
+add_executable("${PROJECT_NAME}" laba5.cpp)	# добавить исполняемый файл
