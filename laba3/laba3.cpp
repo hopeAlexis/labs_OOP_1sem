@@ -11,8 +11,8 @@ private:
 public:
     Arr3D(int d1, int d2, int d3) : d1(d1), d2(d2), d3(d3), cube(d1 * d2 * d3) {}
 
-    //in this vector we first put all k (3rd dimension)
-    //then all j on top of 3rd dim (therefore j * d3 + k)
+    //in this vector we first put all k (3rd dimension) (0;0;k)
+    //then all j on top of 3rd dim (therefore j * d3 + k) (0;j;k)
     //ditto i * d3 * d2
     //example: cube 10*10*10 --> element (0;1;3) is in cube[3 + 10]
 
@@ -215,7 +215,7 @@ template<typename T>
 Arr3D<T> fillZero(int d1, int d2, int d3)
 {
     Arr3D<T> arr(d1, d2, d3);
-    T zero = static_cast<T>(0);     //using static cast to convert 1 into type T
+    T zero = static_cast<T>(0);     //using static cast to convert 0 into type T
 
     for (int i = 0; i < d1; i++)
     {

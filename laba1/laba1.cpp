@@ -1,13 +1,15 @@
 #include <iostream>
+#include <functional>
+
+std::function<double(double)> f = [](double x)
+{
+	return 4 * x * x * x;
+};
 
 class ICalcer
 {
 public:
-	double f(double x)
-	{
-		return 4 * x * x * x;
-	}
-	virtual double calcInt(double a, double b) = 0;
+	virtual double calcInt(std::function<double(double)> f, double a, double b) = 0;
 };
 
 class Trapezoid : public ICalcer
@@ -16,7 +18,7 @@ private:
 	int points;
 public:
 	Trapezoid(int points) : points(points) {}
-	double calcInt(double a, double b) override
+	double calcInt(std::function<double(double)> f, double a, double b) override
 	{
 		double sum = 0.0;
 		double dx = (b - a) / (this->points - 1);
@@ -38,7 +40,7 @@ private:
 	int points;
 public:
 	Simpson(int points) : points(points) {}
-	double calcInt(double a, double b) override
+	double calcInt(std::function<double(double)> f, double a, double b) override
 	{
 		double sum = f(a) + f(b);
 		double dx = (b - a) / (this->points - 1);
@@ -56,17 +58,20 @@ public:
 	}
 };
 
+
+
 int main()
 {
+
 	double a = 1;
 	double b = 10;
 	int points = 1000;
 	double trapSum, simpSum, integralSum = 9999;
 
-	Trapezoid trap(points);
-	Simpson simp(points);
-	trapSum = trap.calcInt(a, b);
-	simpSum = simp.calcInt(a, b);
+	Trapezoid trapCalc(points);
+	Simpson simpCalc(points);
+	trapSum = trapCalc.calcInt(f, a, b);
+	simpSum = simpCalc.calcInt(f, a, b);
 
 	std::cout << "Trapezoidal sum = " << trapSum;
 	std::cout << "\nSimpson sum = " << simpSum;
