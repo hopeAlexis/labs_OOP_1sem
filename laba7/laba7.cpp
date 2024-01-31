@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 
 //The Hash table stores elements in key-value pairs where
 //key - unique integer that is used for indexing the values
@@ -10,113 +10,150 @@
 #include <chrono>   //for timing
 #include <thread>   //to control threads
 
+class Command //parent class for all types of commands
+{
+public:
+    virtual ~Command() = default;
+    virtual void execute() = 0;
+    virtual void undo() = 0;
+};
+
+class Command1 : public Command 
+{
+    void execute() override 
+    {
+        std::cout << "First command.\n\n";
+    }
+    void undo() override 
+    {
+        std::cout << "Undo first command.\n";
+    }
+};
+
+class Command2 : public Command 
+{
+    void execute() override 
+    {
+        std::cout << "Second command.\n\n";
+    }
+    void undo() override 
+    {
+        std::cout << "Undo second command.\n";
+    }
+};
+
+class Command3 : public Command 
+{
+    void execute() override 
+    {
+        std::cout << "Third command.\n\n";
+    }
+    void undo() override 
+    {
+        std::cout << "Undo third command.\n";
+    }
+};
+
 class VirtualKeyboard 
 {
-private: 
-    std::unordered_map<char, std::function<void()>> keyToOperations;
-    std::vector<char> traceback;
-public:    
-    
-    void assignKey(char key, std::function<void()> operation)
-    {
-        keyToOperations[key] = operation;
-    }
+private:
+    std::unordered_map<std::string, Command*> keyActions;   //hash table
+    std::vector<std::string> traceback;
 
-    void pressKey(char key) 
+public:
+    using Action = std::function<void()>;
+
+    void pressKey(const std::string& key) 
     {
-        if (keyToOperations.find(key) != keyToOperations.end()) 
+        if (keyActions.find(key) != keyActions.end()) 
         {
-            keyToOperations[key]();
+            keyActions[key]->execute();
             traceback.push_back(key);
         }
         else 
         {
-            std::cout << "'" << key << "' key is unavailable.\n";
+            std::cout << "Key is not assigned: " << key << "\n";
         }
+    }
+
+    void assignKey(const std::string& key, Command* action) 
+    {
+        if (keyActions.find(key) != keyActions.end()) 
+        {
+            delete keyActions[key];
+        }
+        keyActions[key] = action;
     }
 
     void undo() 
     {
-        if (!traceback.empty()) 
+        if (!traceback.empty())
         {
-            char lastKeyPressed = traceback.back();    //last element in the vector
+            std::string lastKey = traceback.back();
             traceback.pop_back();
-            std::cout << "Undone the '" << lastKeyPressed << "' key.\n";
+            if (keyActions.find(lastKey) != keyActions.end()) 
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(600));
+                keyActions[lastKey]->undo();
+            }
         }
         else 
         {
-            std::cout << "No keys to undo!\n";
+            std::cout << "Nothing to undo\n\n";
         }
     }
 
-    void workflow(const std::vector<char>& keys) 
+
+    void runWorkflow(const std::vector<std::string>& keys) 
     {
-        std::cout << "Workflow:\n";
-        for (int i = 0; i < keys.size(); i++) 
+        for (auto key : keys)
         {
-            pressKey(keys[i]);
-            std::this_thread::sleep_for(std::chrono::milliseconds(600)); // to create key pressing delay
+            pressKey(key);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     }
-
-    std::vector<char> getTraceback() const
+    ~VirtualKeyboard() 
     {
-        return traceback;
+        for (auto item = keyActions.begin(); item != keyActions.end(); item++)    //deleting all commands from the table
+        {
+            delete item->second;
+        }
     }
 };
 
-void operationQ() 
-{
-    std::cout << "Pressed Q key. Q operation happened.\n";
-}
 
-void operationW() 
-{
-    std::cout << "Pressed W key. W operation happened.\n";
-}
-
-void operationE() 
-{
-    std::cout << "Pressed E key. E operation happened.\n";
-}
-
-void operationR() 
-{
-    std::cout << "Pressed R key. R operation happened.\n";
-}
-
-void operationT() 
-{
-    std::cout << "Pressed T key. T operation happened.\n";
-}
-
-void operationY() 
-{
-    std::cout << "Pressed Y key. Y operation happened.\n";
-}
 
 int main() 
 {
     VirtualKeyboard keyboard;
 
-    keyboard.assignKey('q', operationQ);
-    keyboard.assignKey('w', operationW);
-    keyboard.assignKey('e', operationE);
-    keyboard.assignKey('r', operationR);
-    keyboard.assignKey('t', operationT);
-    keyboard.assignKey('y', operationY);
+    keyboard.assignKey("a", new Command1());
+    keyboard.assignKey("b", new Command2());
+    keyboard.assignKey("c", new Command3());
 
-    std::vector<char> workflow = { 'q', 'w', 'e', 'r', 't', 'y'};
-    keyboard.workflow(workflow);
+    std::vector<std::string> workflow = { "a","b","c" };
+    std::cout << "Executing Workflow:\n";
+    keyboard.runWorkflow(workflow);
 
-    std::cout << "\nPressing 'u':\n";
-    keyboard.pressKey('u');
+    std::cout << "\nPressing unassigned key '4':\n";
+    keyboard.pressKey("4");
 
-    std::cout << "\nUndoing last action:\n";
+    std::cout << "\nUndoing last action:\n\n";
+    keyboard.undo();
+    keyboard.undo();
     keyboard.undo();
 
-    std::cout << "\nUpdated Workflow:\n";
-    keyboard.workflow(keyboard.getTraceback());
+    keyboard.runWorkflow(workflow);
+
+    std::cout << "\nWorkflow with reassigned keys:\n\n";
+    keyboard.assignKey("1", new Command1());    //reassigning new keys
+    keyboard.assignKey("2", new Command2());
+    keyboard.assignKey("3", new Command3());
+
+
+    workflow = { "1","2","3" };
+    std::cout << "\nExecuting Workflow:\n";
+    keyboard.runWorkflow(workflow);
 
     return 0;
 }
